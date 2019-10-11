@@ -20,10 +20,11 @@ namespace Decompress
      */
     static void Main(string[] args)
     {
-      var testStrings = new[] { "2[3[a]b]","10[a]", "3[abc]4[ab]c" };//zzabzzabzzab
+      var testStrings = new[] { "2[3[a]b]", "10[a]", "3[abc]4[ab]c"," ","3[e" };
       foreach (var s in testStrings)
       {
         var test = s.ToCharArray();
+
         CompressedString(test);
       }
       Console.ReadLine();
@@ -31,7 +32,7 @@ namespace Decompress
 
     private static void CompressedString(char[] arr)
     {
-      if (arr.Length == 0)
+      if (arr.Length == 0 || arr.Length < 4)
       {
         return;
       }
@@ -41,12 +42,32 @@ namespace Decompress
         return;
       }
 
-      var index = getStartIndex(arr);
-      var result = CompressedString(arr, index, "", rotNumber, 0); ;
-      Console.WriteLine("Result :" + result);
+      var index = GetStartIndex(arr);
+      var tempRes = CompressedString(arr, index, "", rotNumber, 0); ;
+      var lastChars = AttachLastCharacters(arr);
+      var result = tempRes + lastChars;
+      Console.WriteLine("Result from Decompress :" + result);
     }
 
-    private static int getStartIndex(char[] arr)
+    private static string AttachLastCharacters(char[] arr)
+    {
+      var endChars = "";
+      for (int i = arr.Length - 1; i > 0; i--)
+      {
+        if (char.IsLetter(arr[i]))
+        {
+          endChars += arr[i];
+        }
+
+        if (arr[i] == ']')
+        {
+          break;
+        }
+      }
+      return endChars;
+    }
+
+    private static int GetStartIndex(char[] arr)
     {
       int index = 0;
       for (int i = 0; i < arr.Length; i++)
@@ -79,7 +100,7 @@ namespace Decompress
     {
       Console.WriteLine($"current index: {index} currentresult :{result}  rootNumber:{rootNumber}  PrevNumber:{prevRootNum}");
       var currentPeel = "";
-      var currentPrevNumber = rootNumber;
+
       if (index == arr.Length)
       {
         return result;
@@ -120,33 +141,31 @@ namespace Decompress
           curr++;
         }
 
-
-
         result += restPeel;
-     
+
         if (prevRootNum > 0)
         {
-          for (int k = 0; k < prevRootNum/2; k++)
+          for (int k = 0; k < prevRootNum / 2; k++)
           {
             result += result;
           }
         }
-        if (curr > arr.Length - 1) return result;
 
+
+
+        if (curr > arr.Length - 1) return result;
 
         // Next--------------------------------------------------
         if (char.IsDigit(arr[curr]))
         {
           var nextChar = curr + 2;
           var currRootNumber = getNumber(arr[curr].ToString());
-          result += CompressedString(arr, nextChar, result, currRootNumber, currentPrevNumber);
-
+          result += CompressedString(arr, nextChar, result, currRootNumber, 0);
         }
-
-
       }
       else if (char.IsDigit(arr[curr]))
       {
+        var currentPrevNumber = rootNumber;
         var nextChar = curr + 2;
         var currRootNumber = getNumber(arr[curr].ToString());
         result += CompressedString(arr, nextChar, result, currRootNumber, currentPrevNumber);
